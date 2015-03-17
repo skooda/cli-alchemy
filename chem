@@ -21,7 +21,7 @@ function craftElement {
     exit 1
   fi
   
-  ELEMENT=$(cat db/combos|grep " $1 + $2"|cut -d"=" -f1)
+  ELEMENT=$(cat db/combos|grep " $1+$2"|cut -d"=" -f1)
   if [ "$ELEMENT" != "" ]; then
     if [ $(isKnown $ELEMENT) -ne 1 ]; then
       echo "Congratz! You just found $ELEMENT ;)"
