@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# Print usage informations
+function printUsage {
+  echo "Usage"
+  echo
+  echo "chem -h, chem --help, chem ? - show this info"
+  echo "chem - show statistics and known elements"
+  echo "chem <el1> <el2>, chem <el1> + <el2> - combine elements"
+}
+
+# Craft new element
+# Expecting two parameters (element1 and element2)
+function craftElement {
+  if [ $(isKnown $1) -ne 1 ]; then
+    echo "I don't know element $1!"
+    exit 1
+  fi
+  if [ $(isKnown $2) -ne 1 ]; then
+    echo "I don't know element $2!"
+    exit 1
+  fi
+  
+  ELEMENT=$(cat db/combos|grep " $1 + $2"|cut -d"=" -f1)
+  if [ "$ELEMENT" != "" ]; then
+    if [ $(isKnown $ELEMENT) -ne 1 ]; then
+      echo "Congratz! You just found $ELEMENT ;)"
+      setKnown $ELEMENT
+    else
+      echo "You made $ELEMENT (already known)"
+    fi
+  else
+    echo "Nothing happen ..."
+  fi
+} 
+
+# Set element as known
+# Expecting one parameter (element name)
+function setKnown {
+  echo $1 >> ~/.chem
+}
+
+# Check if element is known
+# Expecting one parameter (element name)
+function isKnown {
+  if cat ~/.chem|grep -q $1; then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+# Print all known elements
+function getKnown {
+  echo "Already known elements: "
+  cat ~/.chem|sort
+}
+
+# Initialize .chem db file, if not exists
+function initGame {
+  if [ ! -f ~/.chem ]; then
+    echo -e "fire\nwater\nair\nearth" > ~/.chem
+    echo "Initialized new game"
+  fi
+}
+
+## Main game ##
+
+case "$1" in
+  -h|--help) printUsage; exit 0 ;;
+esac 
+
+if [ $# -eq 0 ]; then
+ getKnown
+ exit 0
+fi
+
+if [ $# -lt 2 ]; then
+  printUsage
+  exit 1
+fi
+
+ELEMENT1=$1
+ELEMENT2=$2
+
+if [ "$2" == "+" ]; then
+  if [ $# -lt 3 ]; then
+    printUsage
+    exit 1
+  fi
+  
+  ELEMENT2=$3
+fi
+
+echo $(craftElement $ELEMENT1 $ELEMENT2)
